@@ -1,0 +1,35 @@
+name: Test OIDC setup
+
+on:
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./access
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+      - name: Install pnpm
+        run: npm i -g pnpm
+      - name: Install
+        run: node ../common/scripts/install-run-rush.js install --to .
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::112125362830:role/AccessStack-GitHubDeploymentRoleD4E2A70A-13MOYB8GA6649
+          role-session-name: GitHubDeploymentSession
+          aws-region: eu-central-1
+      - name: Make AWS call
+        run: aws s3 ls
